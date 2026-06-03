@@ -8,8 +8,5 @@ router.register(r'fuel', FuelFillUpViewSet, basename='fuel')
 
 urlpatterns = [
     path('', include(router.urls)),
-    # GET/POST /api/trips/
-    # GET/PUT/DELETE /api/trips/<id>/
-    # GET /api/dashboard/
     path('dashboard/', DashboardSummaryView.as_view(), name='dashboard-summary'),
 ]

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import environ
 import os
 import dj_database_url
 from pathlib import Path
@@ -29,16 +30,17 @@ if not os.getenv('DATABASE_URL'):
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*5t_n=zkhz!u@i$3!-1jf4e@^o2(+x6&_8ndt3obh!$*vbjzw4'
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
-# Application definition
+SECRET_KEY = env('SECRET_KEY')
+SUPABASE_JWT_SECRET = env('SUPABASE_JWT_SECRET')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -61,6 +63,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'api.authentication.SupabaseJWTAuthentication',
+    ],
+}
 
 ROOT_URLCONF = 'tuk_cal.urls'
 

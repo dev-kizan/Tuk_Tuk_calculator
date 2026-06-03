@@ -13,7 +13,6 @@ class TripViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Drivers can only see their own trips
         return Trip.objects.filter(driver=self.request.user.profile)
 
 
@@ -22,7 +21,6 @@ class FuelFillUpViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Drivers can only see their own fuel logs
         return FuelFillUp.objects.filter(driver=self.request.user.profile)
 
 
@@ -33,7 +31,6 @@ class DashboardSummaryView(views.APIView):
         driver_profile = request.user.profile
         now = timezone.now()
         
-        # Calculate start times for filtering
         start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
         start_of_week = start_of_today - timedelta(days=now.weekday()) # Monday
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -46,7 +43,6 @@ class DashboardSummaryView(views.APIView):
 
         dashboard_data = {}
 
-        # Query and calculate metrics for each timeframe
         for period_name, start_date in periods.items():
             fares_sum = Trip.objects.filter(
                 driver=driver_profile, 
