@@ -2,3 +2,5 @@ notes.txt
 .env
 venv/
 push.ps1
+templates/
+test_env.py

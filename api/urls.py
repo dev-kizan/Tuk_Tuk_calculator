@@ -1,12 +1,14 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TripViewSet, FuelFillUpViewSet, DashboardSummaryView
+from .views import TripViewSet, FuelFillUpViewSet, DashboardSummaryView, home
 
 router = DefaultRouter()
 router.register(r'trips', TripViewSet, basename='trip')
 router.register(r'fuel', FuelFillUpViewSet, basename='fuel')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('home/', home, name='home'),
     path('dashboard/', DashboardSummaryView.as_view(), name='dashboard-summary'),
+
+    path('', include(router.urls)),
 ]

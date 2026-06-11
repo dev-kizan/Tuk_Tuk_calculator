@@ -1,12 +1,34 @@
+import os
+
 from rest_framework import viewsets, views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db.models import Sum
 from datetime import timedelta
+from django.shortcuts import render
 
 from .models import Trip, FuelFillUp
 from .serializers import TripSerializer, FuelFillUpSerializer
+
+def home(request):
+    # supabase_url = os.environ.get("SUPABASE_URL", "https://your-fallback-id.supabase.co")
+    # supabase_anon_key = os.environ.get("SUPABASE_ANON_KEY", "your-fallback-key")
+
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_anon_key = os.environ.get("SUPABASE_ANON_KEY")
+    
+    print(f"DEBUG SUPABASE_URL: {supabase_url}") 
+    
+    context = {
+        'SUPABASE_URL': supabase_url or "MISSING_URL",
+        'SUPABASE_ANON_KEY': supabase_anon_key or "MISSING_KEY",
+    }
+
+    return render(request, 'home.html', context)
+
+def dashboard_view(request):
+    return render(request, 'dashboard.html')
 
 class TripViewSet(viewsets.ModelViewSet):
     serializer_class = TripSerializer

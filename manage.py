@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+from pathlib import Path
 import os
 import sys
+from dotenv import load_dotenv
 
+BASE_DIR = Path(__file__).resolve().parent
+env_path = BASE_DIR / '.env'
+
+# Explicitly load the file from its exact location
+load_dotenv(dotenv_path=env_path)
 
 def main():
     """Run administrative tasks."""
