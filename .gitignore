@@ -2,5 +2,5 @@ notes.txt
 .env
 venv/
 push.ps1
-templates/
+templates/dashboard.html
 test_env.py
