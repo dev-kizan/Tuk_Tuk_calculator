@@ -4,7 +4,8 @@ from .models import Trip, FuelFillUp, Profile
 class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
-        fields = ['id', 'fare_amount', 'timestamp', 'notes']
+        fields = ['id', 'driver', 'fare_amount', 'timestamp', 'notes']
+        read_only_fields = ['driver']
         
     def create(self, validated_data):
         user = self.context['request'].user
@@ -15,7 +16,8 @@ class TripSerializer(serializers.ModelSerializer):
 class FuelFillUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = FuelFillUp
-        fields = ['id', 'cost', 'liters', 'timestamp']
+        fields = ['id', 'driver', 'cost', 'liters', 'timestamp']
+        read_only_fields = ['driver']
 
     def create(self, validated_data):
         user = self.context['request'].user

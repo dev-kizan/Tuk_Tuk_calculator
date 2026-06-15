@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuk-Tuk Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-section { background: #f1f1f1; padding: 15px; margin-top: 20px; border-radius: 6px; }
+        input, textarea { width: 100%; padding: 8px; margin: 6px 0 12px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; font-size: 16px; border-radius: 4px; }
+        button.fuel-btn { background: #dc3545; }
+        button.logout-btn { background: #6c757d; margin-top: 20px; }
+        button:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="dashboard-content">Loading your tuk-tuk statistics...</div>
+
+    <div class="form-section">
+        <h3>💰 Log a New Trip (Fare)</h3>
+        <label for="fare_amount">Fare Amount:</label>
+        <input type="number" id="fare_amount" step="0.01" placeholder="e.g. 500.00">
+        
+        <label for="trip_notes">Notes (Optional):</label>
+        <textarea id="trip_notes" placeholder="Passenger details, destination etc."></textarea>
+        
+        <button onclick="addTrip()">Save Trip</button>
+    </div>
+
+    <div class="form-section">
+        <h3>⛽ Log Fuel Fill-Up</h3>
+        <label for="fuel_cost">Total Cost:</label>
+        <input type="number" id="fuel_cost" step="0.01" placeholder="e.g. 1200.00">
+        
+        <label for="fuel_liters">Liters (Optional):</label>
+        <input type="number" id="fuel_liters" step="0.01" placeholder="e.g. 3.25">
+        
+        <button class="fuel-btn" onclick="addFuel()">Save Fuel Log</button>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">Log Out</button>
+</div>
+
+<script>
+    // Helper function to pull token or bounce user
+    function getToken() {
+        const token = localStorage.getItem('driver_token');
+        if (!token) {
+            alert("Session missing. Redirecting to login.");
+            window.location.href = "/home/";
+            return null;
+        }
+        return token;
+    }
+
+    async function loadDashboardData() {
+        const token = getToken();
+        if (!token) return;
+
+        try {
+            const response = await fetch('/api/dashboard-summary/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                alert("Session expired. Please log in again.");
+                window.location.href = "/home/";
+                return;
+            }
+
+            const data = await response.json();
+
+            const todayNet = data.today ? data.today.net_earnings : 0;
+            const todayFares = data.today ? data.today.total_fares : 0;
+            const todayFuel = data.today ? data.today.total_fuel : 0;
+            const currency = data.today ? data.today.currency : 'LKR';
+
+            const weekNet = data.week ? data.week.net_earnings : 0;
+            const monthNet = data.month ? data.month.net_earnings : 0;
+
+            document.getElementById('dashboard-content').innerHTML = `
+                <h2>🛺 Tuk-Tuk Tracker Dashboard</h2>
+                <hr>
+                <h3>Today's Net: ${currency} ${todayNet.toFixed(2)}</h3>
+                <p>Fares Earned: ${currency} ${todayFares.toFixed(2)} | Fuel Costs: ${currency} ${todayFuel.toFixed(2)}</p>
+                <hr>
+                <p><strong>This Week's Net:</strong> ${currency} ${weekNet.toFixed(2)}</p>
+                <p><strong>This Month's Net:</strong> ${currency} ${monthNet.toFixed(2)}</p>
+            `;
+
+        } catch (err) {
+            console.error("❌ Dashboard DOM rendering failed:", err);
+            document.getElementById('dashboard-content').innerHTML = `
+                <p style="color: red;">Failed to load dashboard statistics.</p>
+            `;
+        }
+    }
+
+    async function addTrip() {
+        const token = getToken();
+        if (!token) return;
+
+        const fareAmount = document.getElementById('fare_amount').value;
+        const notes = document.getElementById('trip_notes').value;
+
+        if (!fareAmount) {
+            alert("Please enter a fare amount.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/trips/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    fare_amount: fareAmount,
+                    notes: notes,
+                    timestamp: new Date().toISOString() // Generates compliant ISO timestamp string
+                })
+            });
+
+            if (response.ok) {
+                alert("🎉 Trip logged successfully!");
+                document.getElementById('fare_amount').value = '';
+                document.getElementById('trip_notes').value = '';
+                loadDashboardData(); // Refresh metrics instantly
+            } else {
+                const errorData = await response.json();
+                alert("Failed to save trip: " + JSON.stringify(errorData));
+            }
+        } catch (err) {
+            alert("Network error saving trip.");
+        }
+    }
+
+    async function addFuel() {
+        const token = getToken();
+        if (!token) return;
+
+        const cost = document.getElementById('fuel_cost').value;
+        const liters = document.getElementById('fuel_liters').value;
+
+        if (!cost) {
+            alert("Please enter fuel cost.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/fuel/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    cost: cost,
+                    liters: liters ? liters : null,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (response.ok) {
+                alert("⛽ Fuel logged successfully!");
+                document.getElementById('fuel_cost').value = '';
+                document.getElementById('fuel_liters').value = '';
+                loadDashboardData(); // Refresh metrics instantly
+            } else {
+                const errorData = await response.json();
+                alert("Failed to save fuel log: " + JSON.stringify(errorData));
+            }
+        } catch (err) {
+            alert("Network error saving fuel.");
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('driver_token');
+        window.location.href = "/home/";
+    }
+
+    window.onload = loadDashboardData;
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+{% comment %} <div id="dashboard-content">Loading your tuk-tuk statistics...</div>
+
+<script>
+    async function loadDashboardData() {
+        const token = localStorage.getItem('driver_token');
+
+        if (!token) {
+            alert("Session missing. Redirecting to login.");
+            window.location.href = "/home/";
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/dashboard-summary/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                alert("Session expired. Please log in again.");
+                window.location.href = "/home/";
+                return;
+            }
+
+            const data = await response.json();
+            console.log("📊 Received Dashboard Data:", data);
+
+            const todayNet = data.today ? data.today.net_earnings : 0;
+            const todayFares = data.today ? data.today.total_fares : 0;
+            const todayFuel = data.today ? data.today.total_fuel : 0;
+            const currency = data.today ? data.today.currency : 'LKR';
+
+            const weekNet = data.week ? data.week.net_earnings : 0;
+
+            document.getElementById('dashboard-content').innerHTML = `
+                <h2>🛺 Tuk-Tuk Tracker Dashboard</h2>
+                <hr>
+                <h3>Today's Net: ${currency} ${todayNet}</h3>
+                <p>Fares Earned: ${currency} ${todayFares} | Fuel Costs: ${currency} ${todayFuel}</p>
+                <hr>
+                <h3>This Week's Net: ${currency} ${weekNet}</h3>
+            `;
+
+        } catch (err) {
+            console.error("❌ Dashboard DOM rendering failed:", err);
+            document.getElementById('dashboard-content').innerHTML = `
+                <p style="color: red;">Failed to load dashboard statistics. Check browser console logs for details.</p>
+            `;
+        }
+    }
+
+    window.onload = loadDashboardData;
+</script> {% endcomment %}
