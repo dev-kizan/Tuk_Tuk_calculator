@@ -28,6 +28,9 @@ def home(request):
 
     return render(request, 'home.html', context)
 
+def login(request):
+    return render(request, 'login.html')
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def dashboard_view(request):
@@ -64,15 +67,13 @@ class DashboardSummaryView(views.APIView):
     def get(self, request, *args, **kwargs):
         user = request.user
         
-        # Safe fallback: retrieve the profile or create it if your signal missed it
         try:
             driver_profile = user.profile
         except ObjectDoesNotExist:
-            # Assuming your model name is Profile. If it's called DriverProfile, adjust accordingly.
             from .models import Profile 
             driver_profile = Profile.objects.create(
                 user=user,
-                currency="LKR" # Assign your default currency structure here
+                currency="LKR"
             )
             print(f"🛠️ Profile created on-the-fly for user: {user.username}")
 

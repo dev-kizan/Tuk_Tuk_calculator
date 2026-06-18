@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuk-Tuk Driver Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div id="auth-container">
+        <h2>Driver Login / Sign Up</h2>
+        <input type="email" id="email" placeholder="Email Address"><br><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <button onclick="signUp()">Register as New Driver</button>
+        <button onclick="signIn()">Driver Log In</button>
+    </div>
+
+    <div id="dashboard-container" style="display:none;">
+        <h2>Your Earnings Dashboard</h2>
+        <div id="stats">Loading data...</div>
+        <button onclick="logout()">Log Out</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "{{ SUPABASE_URL }}";
+        const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        window.onload = function() {
+            const token = localStorage.getItem('driver_token');
+            if (token) {
+                showDashboard(token);
+            }
+        }
+
+        async function signUp() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) alert("Error signing up: " + error.message);
+            else {
+                alert("Sign up successful! If auto-confirmed, you can log in now.");
+            }
+        }
+
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert("Login failed: " + error.message);
+            } else {
+                const token = data.session.access_token;
+                localStorage.setItem('driver_token', token);
+                showDashboard(token);
+            }
+        }
+
+        async function showDashboard(token) {
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'block';
+
+            try {
+                const response = await fetch('/api/dashboard-summary/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error("Unauthorized");
+                }
+
+                const data = await response.json();
+                
+                document.getElementById('stats').innerHTML = `
+                    <h3>Today</h3>
+                    <p>Net Earnings: ${data.today.currency} ${data.today.net_earnings}</p>
+                    <h3>This Week</h3>
+                    <p>Net Earnings: ${data.week.currency} ${data.week.net_earnings}</p>
+                    <h3>This Month</h3>
+                    <p>Net Earnings: ${data.month.currency} ${data.month.net_earnings}</p>
+                `;
+            } catch (err) {
+                alert("Session expired or invalid. Please login again.");
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('driver_token');
+            document.getElementById('auth-container').style.display = 'block';
+            document.getElementById('dashboard-container').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -22,9 +22,7 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         except ValueError:
             raise exceptions.AuthenticationFailed('Invalid token header. Use "Bearer <token>".')
 
-        try:            
-            # CRITICAL FIX: Explicitly pass key=None alongside verify_signature=False
-            # This completely tells PyJWT not to run internal algorithm type checking.
+        try:
             payload = jwt.decode(
                 token, 
                 key=None, 
@@ -46,7 +44,6 @@ class SupabaseJWTAuthentication(authentication.BaseAuthentication):
         if not supabase_uid:
             raise exceptions.AuthenticationFailed('User identifier missing from token.')
 
-        # Create or fetch the user model (Triggers your profile signal instantly!)
         user, created = User.objects.get_or_create(
             username=supabase_uid, 
             defaults={'email': email}

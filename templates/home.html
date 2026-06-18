@@ -3,102 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tuk-Tuk Driver Tracker</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>TukTrack - Know Your Profit</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: sans-serif; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-amber-500 selection:text-white">
 
-    <div id="auth-container">
-        <h2>Driver Login / Sign Up</h2>
-        <input type="email" id="email" placeholder="Email Address"><br><br>
-        <input type="password" id="password" placeholder="Password"><br><br>
-        <button onclick="signUp()">Register as New Driver</button>
-        <button onclick="signIn()">Driver Log In</button>
-    </div>
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 py-3">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="font-extrabold text-xl tracking-tight text-slate-900">Tuk<span class="text-amber-500">Track</span></span>
+            </div>
+            <a href="" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-full transition-all">
+                Try for Free
+            </a>
+        </div>
+    </nav>
 
-    <div id="dashboard-container" style="display:none;">
-        <h2>Your Earnings Dashboard</h2>
-        <div id="stats">Loading data...</div>
-        <button onclick="logout()">Log Out</button>
-    </div>
+    <main class="max-w-xl mx-auto px-4 pt-8 pb-24 space-y-12">
 
-    <script>
-        const SUPABASE_URL = "{{ SUPABASE_URL }}";
-        const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
-        
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        <section class="text-center space-y-4 px-2">
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                නතර කරන්න. දැනගන්න. (Stop Guessing)
+            </span>
+            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl leading-tight">
+                Stop guessing. Know exactly how much money you take home today.
+            </h1>
+            <p class="text-slate-500 text-sm sm:text-base max-w-sm mx-auto">
+                Track your daily passenger fares against your fuel costs instantly. No notebooks required.
+            </p>
+        </section>
 
-        window.onload = function() {
-            const token = localStorage.getItem('driver_token');
-            if (token) {
-                showDashboard(token);
-            }
-        }
+        <section class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between items-center text-center shadow-sm relative overflow-hidden">
+                <div class="absolute top-2 right-2 bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Old Way
+                </div>
+                <div class="text-4xl my-4">📋</div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm sm:text-base">Messy Notebooks</h3>
+                    <p class="text-xs text-slate-400 mt-1">Lost receipts, missed math, and constant stress.</p>
+                </div>
+            </div>
 
-        async function signUp() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            <div class="bg-gradient-to-b from-amber-500 to-orange-500 rounded-2xl p-6 flex flex-col justify-between items-center text-center shadow-md shadow-orange-100 text-white relative overflow-hidden">
+                <div class="absolute top-2 right-2 bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">
+                    TukTrack
+                </div>
+                <div class="bg-white/10 rounded-xl p-3 my-2 w-full text-center border border-white/10 backdrop-blur-xs">
+                    <span class="text-[10px] uppercase opacity-80 block font-semibold tracking-wider">Today's Profit</span>
+                    <span class="text-lg font-black font-mono">LKR 4,850.00</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm sm:text-base">Smiling Wallet</h3>
+                    <p class="text-xs text-white/80 mt-1">Your exact profit, updated live on your phone.</p>
+                </div>
+            </div>
+        </section>
 
-            const { data, error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) alert("Error signing up: " + error.message);
-            else {
-                alert("Sign up successful! If auto-confirmed, you can log in now.");
-            }
-        }
+        <section class="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs space-y-6">
+            <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+                How it works
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0">
+                        1
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm sm:text-base">Drop & Log</h4>
+                        <p class="text-xs sm:text-sm text-slate-500">Enter your fare immediately when a passenger steps out.</p>
+                    </div>
+                </div>
 
-        async function signIn() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0">
+                        2
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm sm:text-base">Fill & Track</h4>
+                        <p class="text-xs sm:text-sm text-slate-500">Log your fuel cost whenever you pull into the shed.</p>
+                    </div>
+                </div>
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                alert("Login failed: " + error.message);
-            } else {
-                const token = data.session.access_token;
-                localStorage.setItem('driver_token', token);
-                showDashboard(token);
-            }
-        }
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">
+                        3
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-emerald-800 text-sm sm:text-base">Watch Your Profit Grow</h4>
+                        <p class="text-xs sm:text-sm text-slate-500">See your real daily, weekly, and monthly take-home instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        async function showDashboard(token) {
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('dashboard-container').style.display = 'block';
+        <section class="bg-slate-900 text-slate-100 rounded-2xl p-6 relative overflow-hidden shadow-xl">
+            <div class="absolute -right-6 -bottom-6 opacity-10 text-9xl font-serif">“</div>
+            <div class="space-y-4 relative z-10">
+                <div class="flex text-amber-400 gap-0.5 text-sm">⭐⭐⭐⭐⭐</div>
+                <p class="text-sm sm:text-base leading-relaxed text-slate-300 italic">
+                    "I used to think I was making money, but after tracking my fuel, I realized which routes were actually losing me cash. This app saved my wallet."
+                </p>
+                <div class="flex items-center gap-3 pt-2">
+                    <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-amber-400 text-sm border border-slate-700">
+                        
+                    </div>
+                    <div>
+                        <p class="font-bold text-xs sm:text-sm text-white">Asanka</p>
+                        <p class="text-[11px] text-slate-400">Professional Driver, Colombo</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            try {
-                const response = await fetch('/api/dashboard-summary/', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+        <section id="signup" class="text-center pt-4">
+            <a href="" 
+                class="inline-block w-full sm:w-auto bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-base px-8 py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all duration-150">
+                Start Tracking for Free
+            </a>
+            <p class="text-slate-400 text-[11px] mt-3">
+                No credit card required. Built for Android & iOS responsive browsers.
+            </p>
+        </section>
 
-                if (response.status === 401 || response.status === 403) {
-                    throw new Error("Unauthorized");
-                }
+    </main>
 
-                const data = await response.json();
-                
-                // Display the results dynamically
-                document.getElementById('stats').innerHTML = `
-                    <h3>Today</h3>
-                    <p>Net Earnings: ${data.today.currency} ${data.today.net_earnings}</p>
-                    <h3>This Week</h3>
-                    <p>Net Earnings: ${data.week.currency} ${data.week.net_earnings}</p>
-                    <h3>This Month</h3>
-                    <p>Net Earnings: ${data.month.currency} ${data.month.net_earnings}</p>
-                `;
-            } catch (err) {
-                alert("Session expired or invalid. Please login again.");
-                logout();
-            }
-        }
+    <footer class="max-w-xl mx-auto px-4 py-6 border-t border-slate-100 text-center text-xs text-slate-400">
+        &copy; 2026 TukTrack. All rights reserved.
+    </footer>
 
-        function logout() {
-            localStorage.removeItem('driver_token');
-            document.getElementById('auth-container').style.display = 'block';
-            document.getElementById('dashboard-container').style.display = 'none';
-        }
-    </script>
 </body>
 </html>
