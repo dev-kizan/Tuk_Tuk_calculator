@@ -3,23 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tuk-Tuk Driver Tracker</title>
+    <title>Tuk-Tuk Driver Tracker - Auth</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: sans-serif; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-amber-500 selection:text-white min-h-screen flex flex-col justify-center items-center px-4">
 
-    <div id="auth-container">
-        <h2>Driver Login / Sign Up</h2>
-        <input type="email" id="email" placeholder="Email Address"><br><br>
-        <input type="password" id="password" placeholder="Password"><br><br>
-        <button onclick="signUp()">Register as New Driver</button>
-        <button onclick="signIn()">Driver Log In</button>
-    </div>
-
-    <div id="dashboard-container" style="display:none;">
-        <h2>Your Earnings Dashboard</h2>
-        <div id="stats">Loading data...</div>
-        <button onclick="logout()">Log Out</button>
+    <div id="auth-container" class="max-w-md w-full space-y-6">
+        <div class="text-center space-y-2">
+            <span class="font-extrabold text-3xl tracking-tight text-slate-900">Tuk<span class="text-amber-500">Track</span></span>
+            <p class="text-slate-500 text-sm">Secure Driver Portal Connection</p>
+        </div>
+        
+        <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-xs space-y-4">
+            <h2 class="text-lg font-bold text-slate-800">Driver Login / Sign Up</h2>
+            
+            <div>
+                <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">Email Address</label>
+                <input type="email" id="email" placeholder="driver@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all">
+            </div>
+            
+            <div>
+                <label class="block text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">Password</label>
+                <input type="password" id="password" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all">
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button onclick="signIn()" class="w-full bg-slate-900 text-white text-xs font-bold p-3.5 rounded-xl text-center hover:bg-slate-800 transition-all cursor-pointer">Driver Log In</button>
+                <button onclick="signUp()" class="w-full bg-slate-100 text-slate-700 text-xs font-bold p-3.5 rounded-xl text-center hover:bg-slate-200 transition-all cursor-pointer">Register New</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -31,24 +50,26 @@
         window.onload = function() {
             const token = localStorage.getItem('driver_token');
             if (token) {
-                showDashboard(token);
+                window.location.href = "/dashboard/";
             }
         }
 
         async function signUp() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            if (!email || !password) return alert("Please enter both email and password.");
 
             const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) alert("Error signing up: " + error.message);
             else {
-                alert("Sign up successful! If auto-confirmed, you can log in now.");
+                alert("Sign up successful! If your account is auto-confirmed, you can log in now.");
             }
         }
 
         async function signIn() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            if (!email || !password) return alert("Please enter both email and password.");
 
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
@@ -56,47 +77,11 @@
             } else {
                 const token = data.session.access_token;
                 localStorage.setItem('driver_token', token);
-                showDashboard(token);
-            }
-        }
-
-        async function showDashboard(token) {
-            document.getElementById('auth-container').style.display = 'none';
-            document.getElementById('dashboard-container').style.display = 'block';
-
-            try {
-                const response = await fetch('/api/dashboard-summary/', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.status === 401 || response.status === 403) {
-                    throw new Error("Unauthorized");
-                }
-
-                const data = await response.json();
                 
-                document.getElementById('stats').innerHTML = `
-                    <h3>Today</h3>
-                    <p>Net Earnings: ${data.today.currency} ${data.today.net_earnings}</p>
-                    <h3>This Week</h3>
-                    <p>Net Earnings: ${data.week.currency} ${data.week.net_earnings}</p>
-                    <h3>This Month</h3>
-                    <p>Net Earnings: ${data.month.currency} ${data.month.net_earnings}</p>
-                `;
-            } catch (err) {
-                alert("Session expired or invalid. Please login again.");
-                logout();
+                document.getElementById('email').value = '';
+                document.getElementById('password').value = '';
+                window.location.href = "/dashboard/";
             }
-        }
-
-        function logout() {
-            localStorage.removeItem('driver_token');
-            document.getElementById('auth-container').style.display = 'block';
-            document.getElementById('dashboard-container').style.display = 'none';
         }
     </script>
 </body>

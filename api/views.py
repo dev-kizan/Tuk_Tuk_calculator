@@ -29,7 +29,14 @@ def home(request):
     return render(request, 'home.html', context)
 
 def login(request):
-    return render(request, 'login.html')
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_anon_key = os.environ.get("SUPABASE_ANON_KEY")
+    
+    context = {
+        'SUPABASE_URL': supabase_url or "MISSING_URL",
+        'SUPABASE_ANON_KEY': supabase_anon_key or "MISSING_KEY",
+    }
+    return render(request, 'login.html', context)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -71,15 +78,11 @@ class DashboardSummaryView(views.APIView):
             driver_profile = user.profile
         except ObjectDoesNotExist:
             from .models import Profile 
-            driver_profile = Profile.objects.create(
-                user=user,
-                currency="LKR"
-            )
-            print(f"🛠️ Profile created on-the-fly for user: {user.username}")
+            driver_profile = Profile.objects.create(user=user, currency="LKR")
 
         now = timezone.now()
         start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        start_of_week = start_of_today - timedelta(days=now.weekday()) # Monday
+        start_of_week = start_of_today - timedelta(days=now.weekday())
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         periods = {
@@ -91,21 +94,47 @@ class DashboardSummaryView(views.APIView):
         dashboard_data = {}
 
         for period_name, start_date in periods.items():
-            fares_sum = Trip.objects.filter(
+            trips_queryset = Trip.objects.filter(
                 driver=driver_profile, 
                 timestamp__gte=start_date
-            ).aggregate(Sum('fare_amount'))['fare_amount__sum'] or 0
+            ).order_by('-timestamp')
 
-            fuel_sum = FuelFillUp.objects.filter(
+            fuel_queryset = FuelFillUp.objects.filter(
                 driver=driver_profile, 
                 timestamp__gte=start_date
-            ).aggregate(Sum('cost'))['cost__sum'] or 0
+            ).order_by('-timestamp')
+
+            fares_sum = trips_queryset.aggregate(Sum('fare_amount'))['fare_amount__sum'] or 0
+            fuel_sum = fuel_queryset.aggregate(Sum('cost'))['cost__sum'] or 0
+
+            individual_logs = []
+
+            for trip in trips_queryset:
+                individual_logs.append({
+                    'id': f"trip_{trip.id}",
+                    'type': 'fare',
+                    'amount': float(trip.fare_amount),
+                    'description': trip.notes or "Passenger Fare",
+                    'timestamp': trip.timestamp.isoformat()
+                })
+
+            for fuel in fuel_queryset:
+                individual_logs.append({
+                    'id': f"fuel_{fuel.id}",
+                    'type': 'fuel',
+                    'amount': float(fuel.cost),
+                    'description': f"Fuel Refill ({fuel.liters}L)" if fuel.liters else "Fuel Refill",
+                    'timestamp': fuel.timestamp.isoformat()
+                })
+
+            individual_logs.sort(key=lambda x: x['timestamp'], reverse=True)
 
             dashboard_data[period_name] = {
                 'total_fares': float(fares_sum),
                 'total_fuel': float(fuel_sum),
                 'net_earnings': float(fares_sum - fuel_sum),
-                'currency': driver_profile.currency
+                'currency': driver_profile.currency,
+                'logs': individual_logs
             }
 
         return Response(dashboard_data, status=status.HTTP_200_OK)

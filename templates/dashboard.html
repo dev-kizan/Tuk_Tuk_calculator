@@ -3,192 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tuk-Tuk Dashboard</title>
+    <title>TukTrack - Driver Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .form-section { background: #f1f1f1; padding: 15px; margin-top: 20px; border-radius: 6px; }
-        input, textarea { width: 100%; padding: 8px; margin: 6px 0 12px; box-sizing: border-box; }
-        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; font-size: 16px; border-radius: 4px; }
-        button.fuel-btn { background: #dc3545; }
-        button.logout-btn { background: #6c757d; margin-top: 20px; }
-        button:hover { opacity: 0.9; }
+        body { font-family: sans-serif; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-amber-500 selection:text-white min-h-screen flex flex-col">
 
-<div class="container">
-    <div id="dashboard-content">Loading your tuk-tuk statistics...</div>
+    <nav class="sticky top-0 z-40 bg-white border-b border-slate-100 px-4 py-3 shadow-xs">
+        <div class="max-w-xl mx-auto flex justify-between items-center">
+            <button onclick="toggleMenu()" class="flex items-center gap-2 text-slate-700 hover:text-slate-900 focus:outline-none p-1 cursor-pointer" aria-label="Open Menu">
+                <span class="text-xl">☰</span>
+                <span class="text-sm font-bold hidden sm:inline">Menu</span>
+            </button>
+            
+            <div class="flex items-center">
+                <span class="font-extrabold text-lg tracking-tight text-slate-900">Tuk<span class="text-amber-500">Track</span> <span class="text-xs font-semibold text-slate-400 font-mono ml-1">Pocket</span></span>
+            </div>
 
-    <div class="form-section">
-        <h3>💰 Log a New Trip (Fare)</h3>
-        <label for="fare_amount">Fare Amount:</label>
-        <input type="number" id="fare_amount" step="0.01" placeholder="e.g. 500.00">
+            <div class="flex items-center gap-2">
+                <div id="profile-avatar" class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center font-bold text-white text-xs ring-2 ring-amber-100 uppercase">
+                    🛺
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="sidebarMenu" class="fixed inset-0 z-50 pointer-events-none transition-all duration-300 invisible">
+        <div id="menuBackdrop" onclick="toggleMenu()" class="absolute inset-0 bg-slate-900/40 opacity-0 transition-opacity duration-300 backdrop-blur-xs pointer-events-auto"></div>
         
-        <label for="trip_notes">Notes (Optional):</label>
-        <textarea id="trip_notes" placeholder="Passenger details, destination etc."></textarea>
-        
-        <button onclick="addTrip()">Save Trip</button>
+        <div id="menuPanel" class="absolute inset-y-0 left-0 w-full max-w-xs bg-white shadow-2xl flex flex-col justify-between transform -translate-x-full transition-transform duration-300 ease-out pointer-events-auto">
+            <div>
+                <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <div>
+                        <span class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Logged in as:</span>
+                        <span id="user-display-email" class="text-xs font-bold text-slate-700 font-mono break-all">Driver</span>
+                    </div>
+                    <button onclick="toggleMenu()" class="text-slate-400 hover:text-slate-600 font-bold p-2 text-sm flex items-center gap-1 border border-slate-200 rounded-lg bg-white shadow-xs cursor-pointer">
+                        ✕ <span class="text-xs">Close</span>
+                    </button>
+                </div>
+
+                <nav class="p-4 space-y-2">
+                    <a href="#" class="flex items-center gap-3 p-3.5 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-sm transition-colors">
+                        <span class="text-lg">📊</span> Detailed History & Reports
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3.5 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-sm transition-colors">
+                        <span class="text-lg">🛺</span> My Tuk-Tuk & Maintenance
+                    </a>
+                    <a href="#" class="flex items-center justify-between p-3.5 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-sm transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">🔄</span> Sync Data
+                        </div>
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">Cloud Saved</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 p-3.5 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-sm transition-colors">
+                        <span class="text-lg">🌐</span> Language
+                    </a>
+                    <a href="https://wa.me/#" target="_blank" class="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-50/50 hover:bg-emerald-50 text-emerald-800 font-bold text-sm transition-colors">
+                        <span class="text-lg">💬</span> Help & Support (WhatsApp)
+                    </a>
+                </nav>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50">
+                <button onclick="logout()" class="w-full flex items-center gap-3 p-3.5 rounded-xl hover:bg-red-50 text-red-600 font-bold text-sm transition-colors cursor-pointer text-left">
+                    <span class="text-lg">🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div class="form-section">
-        <h3>⛽ Log Fuel Fill-Up</h3>
-        <label for="fuel_cost">Total Cost:</label>
-        <input type="number" id="fuel_cost" step="0.01" placeholder="e.g. 1200.00">
-        
-        <label for="fuel_liters">Liters (Optional):</label>
-        <input type="number" id="fuel_liters" step="0.01" placeholder="e.g. 3.25">
-        
-        <button class="fuel-btn" onclick="addFuel()">Save Fuel Log</button>
+    <main class="flex-grow max-w-xl w-full mx-auto px-4 py-6 space-y-6">
+
+        <section class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-5">
+            <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl">
+                <button onclick="switchTimeframe('today')" id="tab-today" class="timeframe-tab py-2.5 text-xs font-bold rounded-lg text-center transition-all bg-white text-slate-900 shadow-xs cursor-pointer">Today</button>
+                <button onclick="switchTimeframe('week')" id="tab-week" class="timeframe-tab py-2.5 text-xs font-bold rounded-lg text-center transition-all text-slate-500 hover:text-slate-800 cursor-pointer">This Week</button>
+                <button onclick="switchTimeframe('month')" id="tab-month" class="timeframe-tab py-2.5 text-xs font-bold rounded-lg text-center transition-all text-slate-500 hover:text-slate-800 cursor-pointer">This Month</button>
+            </div>
+
+            <div class="text-center py-4 bg-radial from-slate-50/50 to-transparent rounded-xl min-h-[110px] flex flex-col justify-center">
+                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">Your Net Earnings</span>
+                
+                <div id="dashboard-content-loader" class="text-sm font-semibold text-slate-400">Loading your data...</div>
+                <div id="dashboard-stats-display" class="hidden space-y-1">
+                    <div id="net-earnings-value" class="text-4xl font-black font-mono tracking-tight text-slate-900">0.00</div>
+                    <div id="breakdown-row" class="flex justify-center gap-3 text-xs font-bold text-slate-400 pt-1"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-2 gap-4">
+            <button onclick="openModal('tripModal')" class="bg-emerald-600 active:bg-emerald-700 text-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer">
+                <span class="text-3xl">💵</span>
+                <span class="font-extrabold text-sm tracking-wide uppercase">+ Log a Trip</span>
+            </button>
+
+            <button onclick="openModal('fuelModal')" class="bg-orange-500 active:bg-orange-600 text-white p-5 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 active:scale-[0.98] transition-all cursor-pointer">
+                <span class="text-3xl">⛽</span>
+                <span class="font-extrabold text-sm tracking-wide uppercase">- Log Fuel</span>
+            </button>
+        </section>
+
+        <section class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-sm sm:text-base text-slate-800 flex items-center gap-2">⏱️ Recent Activity</h3>
+                <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-sm uppercase tracking-wider font-mono">Feed</span>
+            </div>
+
+            <div id="activity-feed" class="divide-y divide-slate-100 max-h-72 overflow-y-auto pr-1 space-y-0.5 text-center py-4 text-xs font-semibold text-slate-400">
+                No logs entered today.
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-xl w-full mx-auto px-4 py-4 border-t border-slate-200/60 text-center text-[11px] text-slate-400 mt-auto">
+        &copy; 2026 TukTrack. All rights reserved.
+    </footer>
+
+    <div id="tripModal" onclick="handleOutsideClick(event, 'tripModal')" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200 opacity-0">
+        <div class="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-xl transform translate-y-10 transition-transform duration-200 inner-modal-box">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">🟢 New Passenger Fare</h3>
+                <button type="button" onclick="closeModal('tripModal')" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 py-1 border border-transparent rounded-lg active:bg-slate-100 cursor-pointer">✕</button>
+            </div>
+            <form class="space-y-4 pt-4" onsubmit="addTrip(event)">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Amount Earned</label>
+                    <input type="number" id="fare_amount" step="0.01" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono font-bold text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Notes (Optional)</label>
+                    <input type="text" id="trip_notes" placeholder="e.g. Airport run, Market drop" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white font-extrabold p-3.5 rounded-xl text-center shadow-lg active:scale-[0.99] transition-transform cursor-pointer">
+                    Save Trip Details
+                </button>
+            </form>
+        </div>
     </div>
 
-    <button class="logout-btn" onclick="logout()">Log Out</button>
-</div>
+    <div id="fuelModal" onclick="handleOutsideClick(event, 'fuelModal')" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200 opacity-0">
+        <div class="relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-xl transform translate-y-10 transition-transform duration-200 inner-modal-box">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">🟠 Log Fuel Expense</h3>
+                <button type="button" onclick="closeModal('fuelModal')" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2 py-1 border border-transparent rounded-lg active:bg-slate-100 cursor-pointer">✕</button>
+            </div>
+            <form class="space-y-4 pt-4" onsubmit="addFuel(event)">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Cost of Fuel</label>
+                    <input type="number" id="fuel_cost" step="0.01" required placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono font-bold text-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-1">Liters (Optional)</label>
+                    <input type="number" id="fuel_liters" step="0.01" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all">
+                </div>
+                <button type="submit" class="w-full bg-orange-500 text-white font-extrabold p-3.5 rounded-xl text-center shadow-lg active:scale-[0.99] transition-transform cursor-pointer">
+                    Save Fuel Cost
+                </button>
+            </form>
+        </div>
+    </div>
 
-<script>
-    function getToken() {
-        const token = localStorage.getItem('driver_token');
-        if (!token) {
-            alert("Session missing. Redirecting to login.");
-            window.location.href = "/home/";
-            return null;
-        }
-        return token;
-    }
+    <script>
+        let cachedDashboardData = null;
+        let activeTimeframeMode = 'today';
 
-    async function loadDashboardData() {
-        const token = getToken();
-        if (!token) return;
-
-        try {
-            const response = await fetch('/api/dashboard-summary/', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                }
-            });
-
-            if (response.status === 401 || response.status === 403) {
-                alert("Session expired. Please log in again.");
+        window.onload = function() {
+            const token = localStorage.getItem('driver_token');
+            if (!token) {
                 window.location.href = "/home/";
+            } else {
+                try {
+                    const sessionUser = JSON.parse(atob(token.split('.')[1]));
+                    document.getElementById('user-display-email').innerText = sessionUser.email || "Active Driver";
+                    document.getElementById('profile-avatar').innerText = sessionUser.email ? sessionUser.email.charAt(0) : '🛺';
+                } catch(e) {}
+                loadDashboardData();
+            }
+        }
+
+        function getToken() {
+            const token = localStorage.getItem('driver_token');
+            if (!token) {
+                window.location.href = "/home/";
+                return null;
+            }
+            return token;
+        }
+
+        function logout() {
+            localStorage.removeItem('driver_token');
+            window.location.href = "/home/";
+        }
+
+        async function loadDashboardData() {
+            const token = getToken();
+            if (!token) return;
+
+            document.getElementById('dashboard-content-loader').classList.remove('hidden');
+            document.getElementById('dashboard-stats-display').classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/dashboard-summary/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    alert("Session expired. Redirecting to login.");
+                    logout();
+                    return;
+                }
+
+                cachedDashboardData = await response.json();
+                renderMetricsDisplay();
+                renderRecentActivityLogs();
+
+            } catch (err) {
+                console.error("❌ Data API Fail:", err);
+                document.getElementById('dashboard-content-loader').innerText = "Failed to load dashboard data.";
+            }
+        }
+
+        function renderMetricsDisplay() {
+            if (!cachedDashboardData) return;
+
+            document.getElementById('dashboard-content-loader').classList.add('hidden');
+            document.getElementById('dashboard-stats-display').classList.remove('hidden');
+
+            const periodData = cachedDashboardData[activeTimeframeMode];
+            const currency = periodData?.currency || 'LKR';
+            const netEarnings = periodData?.net_earnings || 0;
+            const fares = periodData?.total_fares !== undefined ? periodData.total_fares : netEarnings;
+            const fuel = periodData?.total_fuel !== undefined ? periodData.total_fuel : 0;
+
+            const targetValEl = document.getElementById('net-earnings-value');
+            const sign = netEarnings >= 0 ? '+' : '';
+            targetValEl.innerText = `${sign}${currency} ${netEarnings.toFixed(2)}`;
+
+            if (netEarnings >= 0) {
+                targetValEl.className = "text-2xl sm:text-4xl font-black font-mono tracking-tight text-emerald-600";
+            } else {
+                targetValEl.className = "text-2xl sm:text-4xl font-black font-mono tracking-tight text-rose-600";
+            }
+
+            document.getElementById('breakdown-row').innerHTML = `
+                <span class="text-emerald-600/90">Fares: +${currency} ${fares.toFixed(2)}</span>
+                <span class="text-slate-300">|</span>
+                <span class="text-rose-500/90">Fuel: -${currency} ${fuel.toFixed(2)}</span>
+            `;
+        }
+
+        function renderRecentActivityLogs() {
+            const feedContainer = document.getElementById('activity-feed');
+            if (!cachedDashboardData) return;
+
+            const currency = cachedDashboardData[activeTimeframeMode]?.currency || 'LKR';
+            const logs = cachedDashboardData[activeTimeframeMode]?.logs || [];
+            
+            if (logs.length === 0) {
+                feedContainer.innerHTML = `<p class="py-6 text-xs font-semibold text-slate-400 text-center">No individual logs entered for this timeframe.</p>`;
                 return;
             }
 
-            const data = await response.json();
+            let feedHtml = '';
 
-            const todayNet = data.today ? data.today.net_earnings : 0;
-            const todayFares = data.today ? data.today.total_fares : 0;
-            const todayFuel = data.today ? data.today.total_fuel : 0;
-            const currency = data.today ? data.today.currency : 'LKR';
-
-            const weekNet = data.week ? data.week.net_earnings : 0;
-            const monthNet = data.month ? data.month.net_earnings : 0;
-
-            document.getElementById('dashboard-content').innerHTML = `
-                <h2>🛺 Tuk-Tuk Tracker Dashboard</h2>
-                <hr>
-                <h3>Today's Net: ${currency} ${todayNet.toFixed(2)}</h3>
-                <p>Fares Earned: ${currency} ${todayFares.toFixed(2)} | Fuel Costs: ${currency} ${todayFuel.toFixed(2)}</p>
-                <hr>
-                <p><strong>This Week's Net:</strong> ${currency} ${weekNet.toFixed(2)}</p>
-                <p><strong>This Month's Net:</strong> ${currency} ${monthNet.toFixed(2)}</p>
-            `;
-
-        } catch (err) {
-            console.error("❌ Dashboard DOM rendering failed:", err);
-            document.getElementById('dashboard-content').innerHTML = `
-                <p style="color: red;">Failed to load dashboard statistics.</p>
-            `;
-        }
-    }
-
-    async function addTrip() {
-        const token = getToken();
-        if (!token) return;
-
-        const fareAmount = document.getElementById('fare_amount').value;
-        const notes = document.getElementById('trip_notes').value;
-
-        if (!fareAmount) {
-            alert("Please enter a fare amount.");
-            return;
-        }
-
-        try {
-            const response = await fetch('/trips/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    fare_amount: fareAmount,
-                    notes: notes,
-                    timestamp: new Date().toISOString()
-                })
+            logs.forEach(log => {
+                const logTime = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                if (log.type === 'fare') {
+                    feedHtml += `
+                    <div class="flex justify-between items-center py-3.5 border-b border-slate-100 last:border-0">
+                        <div class="flex items-center gap-3 text-left">
+                            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">📥</div>
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${log.description}</p>
+                                <p class="text-[11px] font-semibold text-slate-400 font-mono">${logTime} • Trip Earnings</p>
+                            </div>
+                        </div>
+                        <span class="font-mono font-black text-sm text-emerald-600">+${currency} ${log.amount.toFixed(2)}</span>
+                    </div>`;
+                } else if (log.type === 'fuel') {
+                    feedHtml += `
+                    <div class="flex justify-between items-center py-3.5 border-b border-slate-100 last:border-0">
+                        <div class="flex items-center gap-3 text-left">
+                            <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-sm font-bold">⛽</div>
+                            <div>
+                                <p class="font-bold text-sm text-slate-800">${log.description}</p>
+                                <p class="text-[11px] font-semibold text-slate-400 font-mono">${logTime} • Expense</p>
+                            </div>
+                        </div>
+                        <span class="font-mono font-black text-sm text-rose-500">-${currency} ${log.amount.toFixed(2)}</span>
+                    </div>`;
+                }
             });
 
-            if (response.ok) {
-                alert("🎉 Trip logged successfully!");
-                document.getElementById('fare_amount').value = '';
-                document.getElementById('trip_notes').value = '';
-                loadDashboardData();
-            } else {
-                const errorData = await response.json();
-                alert("Failed to save trip: " + JSON.stringify(errorData));
+            feedContainer.innerHTML = feedHtml;
+        }
+
+        async function addTrip(event) {
+            event.preventDefault();
+            const token = getToken();
+            if (!token) return;
+
+            const fareAmount = document.getElementById('fare_amount').value;
+            const notes = document.getElementById('trip_notes').value;
+
+            try {
+                const response = await fetch('/trips/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        fare_amount: fareAmount,
+                        notes: notes,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('fare_amount').value = '';
+                    document.getElementById('trip_notes').value = '';
+                    closeModal('tripModal');
+                    loadDashboardData();
+                } else {
+                    const errorData = await response.json();
+                    alert("Error: " + JSON.stringify(errorData));
+                }
+            } catch (err) {
+                alert("Network error saving trip.");
             }
-        } catch (err) {
-            alert("Network error saving trip.");
-        }
-    }
-
-    async function addFuel() {
-        const token = getToken();
-        if (!token) return;
-
-        const cost = document.getElementById('fuel_cost').value;
-        const liters = document.getElementById('fuel_liters').value;
-
-        if (!cost) {
-            alert("Please enter fuel cost.");
-            return;
         }
 
-        try {
-            const response = await fetch('/fuel/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    cost: cost,
-                    liters: liters ? liters : null,
-                    timestamp: new Date().toISOString()
-                })
+        async function addFuel(event) {
+            event.preventDefault();
+            const token = getToken();
+            if (!token) return;
+
+            const cost = document.getElementById('fuel_cost').value;
+            const liters = document.getElementById('fuel_liters').value;
+
+            try {
+                const response = await fetch('/fuel/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        cost: cost,
+                        liters: liters ? liters : null,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('fuel_cost').value = '';
+                    document.getElementById('fuel_liters').value = '';
+                    closeModal('fuelModal');
+                    loadDashboardData();
+                } else {
+                    const errorData = await response.json();
+                    alert("Error: " + JSON.stringify(errorData));
+                }
+            } catch (err) {
+                alert("Network error saving fuel.");
+            }
+        }
+
+        function switchTimeframe(timeframe) {
+            activeTimeframeMode = timeframe;
+            document.querySelectorAll('.timeframe-tab').forEach(tab => {
+                tab.className = "timeframe-tab py-2.5 text-xs font-bold rounded-lg text-center transition-all text-slate-500 hover:text-slate-800 cursor-pointer";
             });
 
-            if (response.ok) {
-                alert("⛽ Fuel logged successfully!");
-                document.getElementById('fuel_cost').value = '';
-                document.getElementById('fuel_liters').value = '';
-                loadDashboardData();
-            } else {
-                const errorData = await response.json();
-                alert("Failed to save fuel log: " + JSON.stringify(errorData));
-            }
-        } catch (err) {
-            alert("Network error saving fuel.");
+            const activeTab = document.getElementById(`tab-${timeframe}`);
+            activeTab.className = "timeframe-tab py-2.5 text-xs font-bold rounded-lg text-center transition-all bg-white text-slate-900 shadow-xs cursor-pointer";
+
+            renderMetricsDisplay();
         }
-    }
 
-    function logout() {
-        localStorage.removeItem('driver_token');
-        window.location.href = "/home/";
-    }
+        function toggleMenu() {
+            const menu = document.getElementById('sidebarMenu');
+            const backdrop = document.getElementById('menuBackdrop');
+            const panel = document.getElementById('menuPanel');
+            
+            if (menu.classList.contains('invisible')) {
+                menu.classList.remove('invisible');
+                backdrop.classList.add('opacity-100');
+                panel.classList.remove('-translate-x-full');
+            } else {
+                panel.classList.add('-translate-x-full');
+                backdrop.classList.remove('opacity-100');
+                setTimeout(() => { menu.classList.add('invisible'); }, 300);
+            }
+        }
 
-    window.onload = loadDashboardData;
-</script>
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const box = modal.querySelector('.inner-modal-box');
+            
+            modal.classList.remove('hidden');
+            
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                box.classList.remove('translate-y-10');
+                box.classList.add('translate-y-0');
+            }, 20);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const box = modal.querySelector('.inner-modal-box');
+            
+            box.classList.remove('translate-y-0');
+            box.classList.add('translate-y-10');
+            modal.classList.remove('opacity-100');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function handleOutsideClick(event, modalId) {
+            if (event.target.id === modalId) {
+                closeModal(modalId);
+            }
+        }
+    </script>
 </body>
 </html>
