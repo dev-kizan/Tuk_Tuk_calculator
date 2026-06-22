@@ -31,9 +31,9 @@ if not os.getenv('DATABASE_URL'):
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = ['tukprofit.up.railway.app']
 
 env = environ.Env(
     DEBUG=(bool, False)
