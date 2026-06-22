@@ -39,6 +39,10 @@ ALLOWED_HOSTS = [
     'tukprofit.up.railway.app'
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://tukprofit.up.railway.app'
+]
+
 env = environ.Env(
     DEBUG=(bool, False)
 )
