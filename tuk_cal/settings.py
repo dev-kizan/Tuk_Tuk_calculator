@@ -33,7 +33,11 @@ if not os.getenv('DATABASE_URL'):
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['tukprofit.up.railway.app']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1', 
+    'tukprofit.up.railway.app'
+]
 
 env = environ.Env(
     DEBUG=(bool, False)
