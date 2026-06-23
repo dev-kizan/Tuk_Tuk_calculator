@@ -319,7 +319,7 @@
             const notes = document.getElementById('trip_notes').value;
 
             try {
-                const response = await fetch('/trips/', {
+                const response = await fetch('/api/trips/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -355,7 +355,7 @@
             const liters = document.getElementById('fuel_liters').value;
 
             try {
-                const response = await fetch('/fuel/', {
+                const response = await fetch('/api/fuel/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
