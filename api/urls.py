@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TripViewSet, FuelFillUpViewSet, DashboardSummaryView, dashboard_view, home, login
+from .views import TripViewSet, FuelFillUpViewSet, DashboardSummaryView, SyncOfflineDataView, dashboard_view, home, login
 
 router = DefaultRouter()
 router.register(r'trips', TripViewSet, basename='trip')
@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/', include(router.urls)),
 
     path('api/dashboard-summary/', DashboardSummaryView.as_view(), name='dashboard-summary'),
+    path('api/sync-offline/', SyncOfflineDataView.as_view(), name='sync-offline-data'),
 ]

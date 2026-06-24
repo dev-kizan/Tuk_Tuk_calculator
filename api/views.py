@@ -11,6 +11,8 @@ from django.db.models import Sum
 from datetime import timedelta
 from django.shortcuts import render
 from api.authentication import SupabaseJWTAuthentication
+from rest_framework.views import APIView
+from django.db import transaction
 
 from .models import Trip, FuelFillUp
 from .serializers import TripSerializer, FuelFillUpSerializer
@@ -138,3 +140,56 @@ class DashboardSummaryView(views.APIView):
             }
 
         return Response(dashboard_data, status=status.HTTP_200_OK)
+    
+
+class SyncOfflineDataView(APIView):
+    authentication_classes = [SupabaseJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        try:
+            driver_profile = user.profile
+        except ObjectDoesNotExist:
+            return Response({"error": "Driver profile not found."}, status=status.HTTP_400_BAD_REQUEST)
+
+        pending_items = request.data.get('sync_queue', [])
+        if not pending_items:
+            return Response({"status": "ignored", "message": "Queue was empty"}, status=status.HTTP_200_OK)
+
+        trips_to_create = []
+        fuel_to_create = []
+
+        try:
+            with transaction.atomic():
+                for item in pending_items:
+                    item_time = item.get('timestamp') or timezone.now().isoformat()
+                    
+                    if item.get('type') == 'fare':
+                        trips_to_create.append(Trip(
+                            driver=driver_profile,
+                            fare_amount=item.get('amount'),
+                            notes=item.get('notes', ''),
+                            timestamp=item_time
+                        ))
+                    elif item.get('type') == 'fuel':
+                        fuel_to_create.append(FuelFillUp(
+                            driver=driver_profile,
+                            cost=item.get('amount'),
+                            liters=item.get('liters') or None,
+                            timestamp=item_time
+                        ))
+
+                if trips_to_create:
+                    Trip.objects.bulk_create(trips_to_create)
+                if fuel_to_create:
+                    FuelFillUp.objects.bulk_create(fuel_to_create)
+
+        except Exception as e:
+            return Response({"error": f"Sync failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "status": "success", 
+            "synced_trips": len(trips_to_create), 
+            "synced_fuel": len(fuel_to_create)
+        }, status=status.HTTP_200_OK)
