@@ -193,3 +193,9 @@ class SyncOfflineDataView(APIView):
             "synced_trips": len(trips_to_create), 
             "synced_fuel": len(fuel_to_create)
         }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def history_view(request):
+    return render(request, 'history.html')

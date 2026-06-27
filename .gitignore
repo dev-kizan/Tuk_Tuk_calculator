@@ -3,3 +3,4 @@ notes.txt
 venv/
 push.ps1
 test_env.py
+tuk_cal/_pycache__/

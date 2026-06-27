@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TripViewSet, FuelFillUpViewSet, DashboardSummaryView, SyncOfflineDataView, dashboard_view, home, login
+from .views import TripViewSet, FuelFillUpViewSet, DashboardSummaryView, SyncOfflineDataView, dashboard_view, history_view, home, login
 
 router = DefaultRouter()
 router.register(r'trips', TripViewSet, basename='trip')
@@ -11,6 +11,7 @@ urlpatterns = [
     path('home/', home, name='home'),
     path('login/', login, name='login'),
     path('dashboard/', dashboard_view, name='dashboard-page'),
+    path('history/', history_view, name='history-page'),
 
     path('api/', include(router.urls)),
 
